@@ -3,6 +3,8 @@ import { Metadata } from "next";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
 import { Geist } from "next/font/google";
+import PageTransition from "@/components/page-transition";
+import NavbarWrapper from "@/components/navbar-wrapper";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -23,7 +25,12 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="class" enableSystem forcedTheme="light">
           <Toaster position="top-center" richColors />
-          {children}
+          <NavbarWrapper />
+          <PageTransition />
+
+          <div className="transition-opacity duration-300 opacity-100 animate-fade-in">
+            {children}
+          </div>
         </ThemeProvider>
       </body>
     </html>

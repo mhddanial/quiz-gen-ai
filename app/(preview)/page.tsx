@@ -22,7 +22,6 @@ import {
   Target,
   BarChart3,
 } from "lucide-react";
-import Navbar from "@/components/navbar";
 import { GitIcon } from "@/components/icons";
 import NextLink from "next/link";
 
@@ -84,18 +83,12 @@ export default function HomePage() {
     },
     {
       number: "02",
-      title: "Configure Settings",
-      description:
-        "Select question types, difficulty level, and number of questions.",
-    },
-    {
-      number: "03",
       title: "Generate Quiz",
       description:
         "Our AI processes your content and creates a comprehensive quiz.",
     },
     {
-      number: "04",
+      number: "03",
       title: "Review & Export",
       description:
         "Review your generated quiz and export it in your preferred format.",
@@ -104,7 +97,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Navbar />
       {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -202,7 +194,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {steps.map((step, index) => (
               <div key={index} className="text-center group">
                 <div className="relative mb-6">
@@ -226,7 +218,10 @@ export default function HomePage() {
       </section>
 
       {/* Advantages Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section
+        id="why-choose-us"
+        className="py-20 px-4 sm:px-6 lg:px-8 bg-white"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
