@@ -14,6 +14,7 @@ import {
 import NextLink from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 // Navigation links configuration
 const NAV_LINKS = [
@@ -22,9 +23,21 @@ const NAV_LINKS = [
   { href: "/#why-choose-us", label: "Why Choose Us" },
 ] as const;
 
+// Types
+interface MobileMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: SupabaseUser | null;
+  onSignOut: () => void;
+}
+
+interface UserAvatarProps {
+  user: SupabaseUser | null;
+}
+
 // Custom hook for auth state management
 function useAuth() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +52,9 @@ function useAuth() {
 
         if (error) {
           console.error("Error getting session:", error);
+          if (mounted) {
+            setIsLoading(false);
+          }
           return;
         }
 
@@ -49,6 +65,7 @@ function useAuth() {
       } catch (error) {
         console.error("Error in getUserSession:", error);
         if (mounted) {
+          setUser(null);
           setIsLoading(false);
         }
       }
@@ -88,7 +105,20 @@ function useAuth() {
 }
 
 // Mobile menu component
-function MobileMenu({ isOpen, onClose, user, onSignOut }) {
+function MobileMenu({ isOpen, onClose, user, onSignOut }: MobileMenuProps) {
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -96,11 +126,12 @@ function MobileMenu({ isOpen, onClose, user, onSignOut }) {
       <div
         className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
         onClick={onClose}
+        aria-label="Close menu"
       />
-      <div className="fixed top-0 right-0 z-50 h-full w-64 bg-white shadow-xl">
+      <div className="fixed top-0 right-0 z-50 h-full w-64 bg-white shadow-xl transform transition-transform duration-300">
         <div className="flex items-center justify-between p-4 border-b">
           <span className="font-semibold">Menu</span>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close menu">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -131,21 +162,28 @@ function MobileMenu({ isOpen, onClose, user, onSignOut }) {
                       alt="User avatar"
                       width={30}
                       height={30}
-                      className="rounded-full"
+                      className="rounded-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <User className="h-5 w-5" />
                   )}
-                  <span className="truncate">{user.email}</span>
+                  <span className="truncate">
+                    {user.user_metadata?.full_name || user.email}
+                  </span>
                 </div>
                 <NextLink href="/profile" onClick={onClose}>
                   <Button variant="ghost" className="w-full justify-start">
+                    <User className="mr-2 h-4 w-4" />
                     Profile
                   </Button>
                 </NextLink>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start"
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
                   onClick={() => {
                     onSignOut();
                     onClose();
@@ -164,10 +202,20 @@ function MobileMenu({ isOpen, onClose, user, onSignOut }) {
 }
 
 // User avatar component
-function UserAvatar({ user }) {
+function UserAvatar({ user }: UserAvatarProps) {
+  const [imageError, setImageError] = useState(false);
   const avatarSrc = user?.user_metadata?.avatar_url;
 
-  if (avatarSrc) {
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+  }, []);
+
+  // Reset image error when user changes
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.id]);
+
+  if (avatarSrc && !imageError) {
     return (
       <Image
         src={avatarSrc}
@@ -176,10 +224,7 @@ function UserAvatar({ user }) {
         height={32}
         className="rounded-full object-cover"
         priority={false}
-        onError={(e) => {
-          // Fallback to user icon if image fails to load
-          e.currentTarget.style.display = "none";
-        }}
+        onError={handleImageError}
       />
     );
   }
@@ -199,6 +244,23 @@ export default function Navbar() {
   const closeMobileMenu = useCallback(() => {
     setIsMobileMenuOpen(false);
   }, []);
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileMenuOpen) {
+        closeMobileMenu();
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMobileMenuOpen, closeMobileMenu]);
 
   // Memoize navigation links to prevent unnecessary re-renders
   const navigationLinks = useMemo(
@@ -268,15 +330,15 @@ export default function Navbar() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <NextLink href="/profile" className="cursor-pointer ">
-                        <User className="h-4 w-4" />
+                      <NextLink href="/profile" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
                         Profile
                       </NextLink>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={signOut}
-                      className="cursor-pointer text-red-600 focus:text-red-600"
+                      className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign Out
