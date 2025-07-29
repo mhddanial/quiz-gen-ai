@@ -17,10 +17,8 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import Quiz from "@/components/quiz";
-import NextLink from "next/link";
 import { generateQuizTitle } from "../actions";
 import { AnimatePresence, motion } from "framer-motion";
-import { VercelIcon, GitIcon } from "@/components/icons";
 
 export default function ChatWithFiles() {
   const [files, setFiles] = useState<File[]>([]);
@@ -224,21 +222,6 @@ export default function ChatWithFiles() {
           </CardFooter>
         )}
       </Card>
-      <motion.div
-        className="flex flex-row gap-4 items-center justify-between fixed bottom-6 text-xs "
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-      >
-
-        <NextLink
-          target="_blank"
-          href="https://vercel.com/templates/next.js/ai-quiz-generator"
-          className="flex flex-row gap-2 items-center bg-zinc-900 px-2 py-1.5 rounded-md text-zinc-50 hover:bg-zinc-950 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-50"
-        >
-          <VercelIcon size={14} />
-          Deploy with Vercel
-        </NextLink>
-      </motion.div>
     </div>
   );
 }

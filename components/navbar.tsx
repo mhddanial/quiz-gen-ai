@@ -131,7 +131,12 @@ function MobileMenu({ isOpen, onClose, user, onSignOut }: MobileMenuProps) {
       <div className="fixed top-0 right-0 z-50 h-full w-64 bg-white shadow-xl transform transition-transform duration-300">
         <div className="flex items-center justify-between p-4 border-b">
           <span className="font-semibold">Menu</span>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close menu">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -154,8 +159,8 @@ function MobileMenu({ isOpen, onClose, user, onSignOut }: MobileMenuProps) {
                 </Button>
               </NextLink>
             ) : (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 p-2 text-sm text-gray-600">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2 text-sm mb-2 text-gray-600">
                   {user.user_metadata?.avatar_url ? (
                     <Image
                       src={user.user_metadata.avatar_url}
@@ -165,15 +170,20 @@ function MobileMenu({ isOpen, onClose, user, onSignOut }: MobileMenuProps) {
                       className="rounded-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
+                        target.style.display = "none";
                       }}
                     />
                   ) : (
                     <User className="h-5 w-5" />
                   )}
-                  <span className="truncate">
-                    {user.user_metadata?.full_name || user.email}
-                  </span>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user.user_metadata?.full_name || "User"}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground truncate">
+                      {user.email}
+                    </p>
+                  </div>
                 </div>
                 <NextLink href="/profile" onClick={onClose}>
                   <Button variant="ghost" className="w-full justify-start">

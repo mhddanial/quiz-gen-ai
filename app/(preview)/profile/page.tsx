@@ -46,12 +46,6 @@ interface UserProfile {
   last_sign_in_at?: string;
 }
 
-interface UserStats {
-  totalQuizzes: number;
-  totalQuestions: number;
-  lastActivity: string;
-}
-
 interface EditForm {
   fullName: string;
   email: string;
@@ -61,11 +55,6 @@ export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [userStats, setUserStats] = useState<UserStats>({
-    totalQuizzes: 0,
-    totalQuestions: 0,
-    lastActivity: "Never",
-  });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -102,24 +91,6 @@ export default function ProfilePage() {
     },
     [profile?.email]
   );
-
-  // Memoized user statistics (replace with actual API call when available)
-  const loadUserStats = useCallback(async () => {
-    // TODO: Replace with actual API calls to get user statistics
-    // For now, using mock data
-    try {
-      // Example: const { data: quizzes } = await supabase.from('quizzes').select('id').eq('user_id', user.id);
-      // Example: const { data: questions } = await supabase.from('questions').select('id').eq('user_id', user.id);
-
-      setUserStats({
-        totalQuizzes: 12,
-        totalQuestions: 156,
-        lastActivity: "2 hours ago",
-      });
-    } catch (error) {
-      console.error("Error loading user stats:", error);
-    }
-  }, []);
 
   // Main function to check user and load profile
   const checkUser = useCallback(async () => {
@@ -159,16 +130,13 @@ export default function ProfilePage() {
         fullName: profileData.full_name || "",
         email: profileData.email,
       });
-
-      // Load user statistics
-      await loadUserStats();
     } catch (error) {
       console.error("Error loading profile:", error);
       setError("Failed to load profile information");
     } finally {
       setIsLoading(false);
     }
-  }, [router, loadUserStats]);
+  }, [router]);
 
   // Effect to load user data on component mount
   useEffect(() => {
@@ -309,28 +277,9 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => router.push("/")}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                Back to Home
-              </Button>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Profile Settings
-              </h1>
-            </div>
-            <Button
-              variant="outline"
-              onClick={handleSignOut}
-              className="text-red-600 border-red-200 hover:bg-red-50"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Profile Informations
+          </h1>
         </div>
       </div>
 
@@ -548,7 +497,7 @@ export default function ProfilePage() {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => router.push("/")}
+                  onClick={() => router.push("/generate")}
                 >
                   <FileText className="h-4 w-4 mr-3" />
                   Create New Quiz
@@ -557,7 +506,7 @@ export default function ProfilePage() {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => router.push("/quizzes")}
+                  onClick={() => router.push("/profile/quis-history")}
                 >
                   <BarChart3 className="h-4 w-4 mr-3" />
                   View All Quizzes
@@ -570,6 +519,14 @@ export default function ProfilePage() {
                 >
                   <Settings className="h-4 w-4 mr-3" />
                   Account Settings
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSignOut}
+                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
                 </Button>
               </CardContent>
             </Card>
