@@ -1,51 +1,31 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { getCurrentUser, signOutUser } from "@/lib/auth";
+import {
+  extractUserProfile,
+  updateUserFullName,
+  UserProfile,
+} from "@/lib/user";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Image from "next/image";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import {
-  User,
-  Mail,
-  Calendar,
-  Edit3,
-  Save,
-  X,
-  Camera,
-  LogOut,
-  Shield,
-  Clock,
-  FileText,
-  BarChart3,
-  Settings,
-  Loader2,
-  Check,
-  Upload,
-} from "lucide-react";
-import { User as SupabaseUser } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
+import { Loader2, Check } from "lucide-react";
 
-interface UserProfile {
-  id: string;
-  email: string;
-  full_name?: string;
-  avatar_url?: string;
-  provider?: string;
-  created_at: string;
-  last_sign_in_at?: string;
-}
+import AvatarCard from "@/components/profile/AvatarCard";
+import ProfileForm from "@/components/profile/ProfileForm";
+import QuickActions from "@/components/profile/QuickAction";
 
+// --- Interfaces ---
 interface EditForm {
   fullName: string;
   email: string;
@@ -65,7 +45,6 @@ export default function ProfilePage() {
     email: "",
   });
 
-  // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -74,76 +53,41 @@ export default function ProfilePage() {
     });
   }, []);
 
-  // Memoized function to get user initials
   const getInitials = useCallback(
     (fullName?: string) => {
-      if (!fullName) {
-        return profile?.email?.charAt(0).toUpperCase() || "U";
-      }
-
+      if (!fullName) return profile?.email?.charAt(0).toUpperCase() || "U";
       const names = fullName.trim().split(" ");
-      if (names.length > 1) {
-        return `${names[0].charAt(0)}${names[names.length - 1].charAt(
-          0
-        )}`.toUpperCase();
-      }
-      return names[0].charAt(0).toUpperCase();
+      return names.length > 1
+        ? `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
+        : names[0][0].toUpperCase();
     },
     [profile?.email]
   );
 
-  // Main function to check user and load profile
   const checkUser = useCallback(async () => {
     try {
       setIsLoading(true);
       setError("");
-
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        router.push("/auth/login");
-        return;
-      }
-
-      setUser(user);
-
-      // Extract profile information from user metadata and identities
-      const profileData: UserProfile = {
-        id: user.id,
-        email: user.email || "",
-        full_name:
-          user.user_metadata?.full_name || user.user_metadata?.name || "",
-        avatar_url:
-          user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
-        provider: user.app_metadata?.provider || "email",
-        created_at: user.created_at,
-        last_sign_in_at: user.last_sign_in_at,
-      };
-
-      setProfile(profileData);
-
-      // Set edit form initial values
+      const supaUser = await getCurrentUser();
+      setUser(supaUser);
+      const userProfile = extractUserProfile(supaUser);
+      setProfile(userProfile);
       setEditForm({
-        fullName: profileData.full_name || "",
-        email: profileData.email,
+        fullName: userProfile.full_name || "",
+        email: userProfile.email,
       });
-    } catch (error) {
-      console.error("Error loading profile:", error);
+    } catch (err) {
       setError("Failed to load profile information");
+      router.push("/auth/login");
     } finally {
       setIsLoading(false);
     }
   }, [router]);
 
-  // Effect to load user data on component mount
   useEffect(() => {
     checkUser();
   }, [checkUser]);
 
-  // Auto-clear success message
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => setSuccess(""), 3000);
@@ -151,67 +95,50 @@ export default function ProfilePage() {
     }
   }, [success]);
 
-  // Handle profile save
   const handleSaveProfile = useCallback(async () => {
     if (!editForm.fullName.trim()) {
       setError("Name cannot be empty");
       return;
     }
 
-    setIsSaving(true);
-    setError("");
-    setSuccess("");
-
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          full_name: editForm.fullName.trim(),
-        },
-      });
+      setIsSaving(true);
+      setError("");
+      setSuccess("");
 
-      if (updateError) throw updateError;
-
-      // Update local profile state
+      await updateUserFullName(editForm.fullName);
       setProfile((prev) =>
-        prev
-          ? {
-              ...prev,
-              full_name: editForm.fullName.trim(),
-            }
-          : null
+        prev ? { ...prev, full_name: editForm.fullName } : null
       );
-
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
-    } catch (error: any) {
-      setError(error.message || "Failed to update profile");
+    } catch (err: any) {
+      setError(err.message || "Failed to update profile");
     } finally {
       setIsSaving(false);
     }
   }, [editForm.fullName]);
 
-  // Handle sign out
   const handleSignOut = useCallback(async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await signOutUser();
       router.push("/");
-    } catch (error) {
+    } catch {
       setError("Error signing out");
     }
   }, [router]);
 
-  // Handle edit cancel
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
     setError("");
-    setEditForm({
-      fullName: profile?.full_name || "",
-      email: profile?.email || "",
-    });
+    if (profile) {
+      setEditForm({
+        fullName: profile.full_name || "",
+        email: profile.email,
+      });
+    }
   }, [profile]);
 
-  // Handle form input changes
   const handleFormChange = useCallback(
     (field: keyof EditForm, value: string) => {
       setEditForm((prev) => ({ ...prev, [field]: value }));
@@ -219,7 +146,6 @@ export default function ProfilePage() {
     []
   );
 
-  // Memoized Google icon component
   const GoogleIcon = useMemo(
     () => (
       <svg className="w-3 h-3" viewBox="0 0 24 24">
@@ -244,22 +170,17 @@ export default function ProfilePage() {
     []
   );
 
-  // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading profile...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     );
   }
 
-  // Error state
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <p className="text-gray-600 mb-4">
@@ -274,23 +195,20 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-900">
-            Profile Informations
+            Profile Information
           </h1>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Alerts */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-
         {success && (
           <Alert className="mb-6 border-green-200 bg-green-50">
             <Check className="h-4 w-4 text-green-600" />
@@ -301,7 +219,6 @@ export default function ProfilePage() {
         )}
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Profile Card */}
           <div className="lg:col-span-2">
             <Card className="shadow-lg border-0">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
@@ -321,215 +238,33 @@ export default function ProfilePage() {
                       onClick={() => setIsEditing(true)}
                       className="bg-white/20 hover:bg-white/30 text-white border-white/30"
                     >
-                      <Edit3 className="h-4 w-4 mr-2" />
                       Edit
                     </Button>
                   )}
                 </div>
               </CardHeader>
-
               <CardContent className="p-8">
-                {/* Profile Photo Section */}
-                <div className="flex items-center space-x-6 mb-8">
-                  <div className="relative">
-                    {profile.avatar_url ? (
-                      <Image
-                        src={profile.avatar_url}
-                        alt="Profile"
-                        width={96}
-                        height={96}
-                        className="w-24 h-24 rounded-full object-cover ring-4 ring-blue-100"
-                        priority
-                      />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold ring-4 ring-blue-100">
-                        {getInitials(profile.full_name)}
-                      </div>
-                    )}
-                    <div className="absolute -bottom-2 -right-2 bg-blue-600 rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors">
-                      <Camera className="h-4 w-4 text-white" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">
-                      {profile.full_name || "User"}
-                    </h3>
-                    <p className="text-gray-600">{profile.email}</p>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <Badge variant="secondary" className="capitalize">
-                        {profile.provider === "google" ? (
-                          <div className="flex items-center space-x-1">
-                            {GoogleIcon}
-                            <span>Google</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center space-x-1">
-                            <Mail className="w-3 h-3" />
-                            <span>Email</span>
-                          </div>
-                        )}
-                      </Badge>
-                      <Badge variant="outline">
-                        <Shield className="w-3 h-3 mr-1" />
-                        Verified
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Profile Form */}
-                <div className="space-y-6">
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="fullName">Name</Label>
-                          <Input
-                            id="fullName"
-                            value={editForm.fullName}
-                            onChange={(e) =>
-                              handleFormChange("fullName", e.target.value)
-                            }
-                            placeholder="Your Full Name"
-                            maxLength={100}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={editForm.email}
-                          disabled
-                          className="bg-gray-50"
-                        />
-                        <p className="text-xs text-gray-500">
-                          Email cannot be changed
-                        </p>
-                      </div>
-
-                      <div className="flex space-x-3 pt-4">
-                        <Button
-                          onClick={handleSaveProfile}
-                          disabled={isSaving}
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                        >
-                          {isSaving ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Save className="h-4 w-4 mr-2" />
-                              Save Changes
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleCancelEdit}
-                          disabled={isSaving}
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-500">
-                            Full Name
-                          </Label>
-                          <p className="text-gray-900 font-medium mt-1">
-                            {profile.full_name || "Not provided"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium text-gray-500">
-                            Email Address
-                          </Label>
-                          <p className="text-gray-900 font-medium mt-1">
-                            {profile.email}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-500">
-                            Member Since
-                          </Label>
-                          <p className="text-gray-900 font-medium mt-1">
-                            {formatDate(profile.created_at)}
-                          </p>
-                        </div>
-
-                        <div>
-                          <Label className="text-sm font-medium text-gray-500">
-                            Last Sign In
-                          </Label>
-                          <p className="text-gray-900 font-medium mt-1">
-                            {profile.last_sign_in_at
-                              ? formatDate(profile.last_sign_in_at)
-                              : "Never"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <AvatarCard
+                  profile={profile}
+                  getInitials={getInitials}
+                  GoogleIcon={GoogleIcon}
+                />
+                <ProfileForm
+                  isEditing={isEditing}
+                  isSaving={isSaving}
+                  profile={profile}
+                  editForm={editForm}
+                  handleFormChange={handleFormChange}
+                  handleSaveProfile={handleSaveProfile}
+                  handleCancelEdit={handleCancelEdit}
+                  formatDate={formatDate}
+                />
               </CardContent>
             </Card>
           </div>
 
-          {/* Quick Actions */}
           <div className="space-y-6">
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => router.push("/generate")}
-                >
-                  <FileText className="h-4 w-4 mr-3" />
-                  Create New Quiz
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => router.push("/profile/quis-history")}
-                >
-                  <BarChart3 className="h-4 w-4 mr-3" />
-                  View All Quizzes
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => router.push("/settings")}
-                >
-                  <Settings className="h-4 w-4 mr-3" />
-                  Account Settings
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleSignOut}
-                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </CardContent>
-            </Card>
+            <QuickActions onSignOut={handleSignOut} />
           </div>
         </div>
       </div>
