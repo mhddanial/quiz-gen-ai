@@ -11,26 +11,62 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Eye, Calendar, FileText } from 'lucide-react';
+import { Loader2, Eye, Calendar, FileText, Trash } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+  AlertDialogDescription,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface QuizHistory {
   id: string;
   doc_title: string;
-  questions: QuizQuestion[];
-  average_score: number;
+  questions: {
+    question: string;
+    answer: string;
+    options: string[];
+  }[];
   created_at: string;
-}
-
-interface QuizQuestion {
-  question: string;
-  correct_answer: string;
-  user_answer: string;
+  quiz_answers: { score: number }[];
 }
 
 export default function QuizHistoryPage() {
   const router = useRouter();
   const [history, setHistory] = useState<QuizHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (quizId: string) => {
+    const toastId = toast.loading("Deleting quiz...");
+
+    try {
+      await supabase.from("quiz_answers").delete().eq("quiz_id", quizId);
+
+      const { error } = await supabase
+        .from("quiz_histories")
+        .delete()
+        .eq("id", quizId);
+
+      if (error) {
+        toast.error("Failed to delete quiz", { id: toastId });
+        return;
+      }
+
+      setHistory((prev) => prev.filter((item) => item.id !== quizId));
+      toast.success("Quiz deleted successfully", { id: toastId });
+    } catch (e) {
+      toast.error("Unexpected error occurred", { id: toastId });
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const fetchHistory = useCallback(async () => {
     const {
@@ -38,15 +74,15 @@ export default function QuizHistoryPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      router.push('/auth/login');
+      router.push("/auth/login");
       return;
     }
 
     const { data, error } = await supabase
-      .from('quiz_histories')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .from("quiz_histories")
+      .select("id, doc_title, questions, created_at, quiz_answers(score)")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
 
     if (!error && data) setHistory(data);
     setLoading(false);
@@ -77,55 +113,73 @@ export default function QuizHistoryPage() {
       ) : (
         <div className="space-y-4">
           {history.map((item) => (
-            <Card key={item.id}>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      {item.doc_title}
-                    </h4>
-                    <div className="flex gap-4 text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
+            <Card key={item.id} className="hover:shadow-md transition">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h4 className="text-lg font-semibold">{item.doc_title}</h4>
+                    <div className="flex items-center text-sm text-muted-foreground mt-1 gap-4">
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
                         {new Date(item.created_at).toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center">
-                        <FileText className="h-4 w-4 mr-1" />
+                      </span>
+                      <span className="flex items-center">
+                        <FileText className="w-4 h-4 mr-1" />
                         {item.questions.length} Questions
-                      </div>
+                      </span>
                     </div>
                   </div>
-
-                  <Badge className="bg-blue-100 text-blue-800">
-                    Score: {Math.round(item.average_score * 100)}%
-                  </Badge>
+                  {item.quiz_answers?.length === 0 ? (
+                    <Badge variant="secondary">Not Answered</Badge>
+                  ) : (
+                    <Badge className="bg-blue-100 text-blue-800">
+                      Score: {Math.round(item.quiz_answers[0].score * 100)}%
+                    </Badge>
+                  )}
                 </div>
 
-                <div className="mt-4 space-y-2">
-                  {item.questions.map((q, idx) => (
-                    <div key={idx} className="border p-3 rounded bg-gray-50">
-                      <p className="font-medium text-sm text-gray-800">
-                        {idx + 1}. {q.question}
-                      </p>
-                      <div className="text-sm mt-1">
-                        <span className="text-gray-600">Your Answer: </span>
-                        <span
-                          className={
-                            q.user_answer === q.correct_answer
-                              ? 'text-green-600 font-semibold'
-                              : 'text-red-600 font-semibold'
-                          }
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      router.push(`/profile/quiz-history/${item.id}`)
+                    }
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setDeletingId(item.id)}
+                      >
+                        <Trash className="w-4 h-4 mr-1" />
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete the quiz and its answers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(item.id)}
+                          disabled={deletingId !== item.id}
                         >
-                          {q.user_answer}
-                        </span>
-                        {q.user_answer !== q.correct_answer && (
-                          <span className="ml-2 text-gray-500">
-                            (Correct: {q.correct_answer})
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                          Yes, Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>

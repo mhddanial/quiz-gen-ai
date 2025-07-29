@@ -1,60 +1,75 @@
-import { Check, X } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Question } from '@/lib/schemas'
+import { Question } from "@/lib/schemas";
+import { Check, X } from "lucide-react";
 
+type Props = {
+  questions: Question[];
+  userAnswers: string[];
+};
 
-interface QuizReviewProps {
-  questions: Question[]
-  userAnswers: string[]
-}
+const answerLabels = ["A", "B", "C", "D"];
 
-export default function QuizReview({ questions, userAnswers }: QuizReviewProps) {
-  const answerLabels: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"]
-
+export default function QuizReview({ questions, userAnswers }: Props) {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Quiz Review</CardTitle>
-      </CardHeader>
-      <CardContent>
-          {questions.map((question, questionIndex) => (
-            <div key={questionIndex} className="mb-8 last:mb-0">
-              <h3 className="text-lg font-semibold mb-4">{question.question}</h3>
-              <div className="space-y-2">
-                {question.options.map((option, optionIndex) => {
-                  const currentLabel = answerLabels[optionIndex]
-                  const isCorrect = currentLabel === question.answer
-                  const isSelected = currentLabel === userAnswers[questionIndex]
-                  const isIncorrectSelection = isSelected && !isCorrect
+    <div className="space-y-6">
+      {questions.map((q, index) => {
+        const userAnswer = userAnswers[index];
+        const correctAnswer = q.answer;
 
-                  return (
-                    <div
-                      key={optionIndex}
-                      className={`flex items-center p-4 rounded-lg ${
-                        isCorrect
-                          ? 'bg-green-100 dark:bg-green-700/50'
-                          : isIncorrectSelection
-                          ? 'bg-red-100 dark:bg-red-700/50'
-                          : 'border border-border'
-                      }`}
-                    >
-                      <span className="text-lg font-medium mr-4 w-6">{currentLabel}</span>
-                      <span className="flex-grow">{option}</span>
-                      {isCorrect && (
-                        <Check className="ml-2 text-green-600 dark:text-green-400" size={20} />
-                      )}
-                      {isIncorrectSelection && (
-                        <X className="ml-2 text-red-600 dark:text-red-400" size={20} />
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+        return (
+          <div
+            key={index}
+            className="border rounded-md p-4 space-y-2 bg-white shadow-sm"
+          >
+            <p className="font-medium text-gray-800">
+              {index + 1}. {q.question}
+            </p>
+
+            <div className="grid gap-2">
+              {q.options.map((option, i) => {
+                const label = answerLabels[i];
+                const isCorrect = label === correctAnswer;
+                const isUserSelected = label === userAnswer;
+
+                let bg = "bg-white";
+                if (isCorrect) bg = "bg-green-100 border-green-500";
+                if (isUserSelected && !isCorrect)
+                  bg = "bg-red-100 border-red-500";
+
+                return (
+                  <div
+                    key={label}
+                    className={`flex items-center justify-between border p-3 rounded ${bg}`}
+                  >
+                    <span className="flex gap-2 items-center">
+                      <span className="font-bold">{label}.</span> {option}
+                    </span>
+
+                    {/* ICON */}
+                    {isUserSelected &&
+                      (isCorrect ? (
+                        <Check className="text-green-600 w-5 h-5" />
+                      ) : (
+                        <X className="text-red-600 w-5 h-5" />
+                      ))}
+                  </div>
+                );
+              })}
             </div>
-          ))}
-      </CardContent>
-    </Card>
-  )
-}
 
+            {/* Summary per soal */}
+            {userAnswer !== correctAnswer && (
+              <p className="text-sm text-red-600 mt-1">
+                Jawaban Anda: <strong>{userAnswer}</strong>
+              </p>
+            )}
+            {userAnswer === correctAnswer && (
+              <p className="text-sm text-green-600 mt-1">
+                ✅ Jawaban Anda benar!
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
