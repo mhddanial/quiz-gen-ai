@@ -1,6 +1,8 @@
+// app/(preview)/generate-quiz/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { experimental_useObject } from "ai/react";
 import { questionsSchema } from "@/lib/schemas";
 import { z } from "zod";
@@ -19,14 +21,32 @@ import { Progress } from "@/components/ui/progress";
 import Quiz from "@/components/quiz";
 import { generateQuizTitle } from "../actions";
 import { AnimatePresence, motion } from "framer-motion";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function ChatWithFiles() {
+  const [quizId, setQuizId] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [questions, setQuestions] = useState<z.infer<typeof questionsSchema>>(
-    [],
+    []
   );
   const [isDragging, setIsDragging] = useState(false);
   const [title, setTitle] = useState<string>();
+  const [userId, setUserId] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/auth/login");
+        return;
+      }
+      setUserId(user.id);
+    };
+    checkAuth();
+  }, [router]);
 
   const {
     submit,
@@ -36,35 +56,52 @@ export default function ChatWithFiles() {
     api: "/api/generate-quiz",
     schema: questionsSchema,
     initialValue: undefined,
-    onError: (error) => {
+    onError: () => {
       toast.error("Failed to generate quiz. Please try again.");
       setFiles([]);
     },
-    onFinish: ({ object }) => {
-      setQuestions(object ?? []);
+    onFinish: async ({ object }) => {
+      if (!object || !userId || !files[0]) return;
+
+      const generatedTitle = await generateQuizTitle(files[0].name);
+      setTitle(generatedTitle);
+
+      const { data, error } = await supabase
+        .from("quiz_histories")
+        .insert({
+          doc_title: generatedTitle,
+          questions: object,
+          user_id: userId,
+          average_score: null,
+        })
+        .select("id")
+        .single();
+
+      if (error) {
+        toast.error("Gagal menyimpan quiz.");
+        return;
+      }
+
+      setQuizId(data.id);
+      setQuestions(object);
     },
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
     if (isSafari && isDragging) {
       toast.error(
-        "Safari does not support drag & drop. Please use the file picker.",
+        "Safari does not support drag & drop. Please use the file picker."
       );
       return;
     }
-
     const selectedFiles = Array.from(e.target.files || []);
     const validFiles = selectedFiles.filter(
-      (file) => file.type === "application/pdf" && file.size <= 5 * 1024 * 1024,
+      (file) => file.type === "application/pdf" && file.size <= 5 * 1024 * 1024
     );
-    console.log(validFiles);
-
     if (validFiles.length !== selectedFiles.length) {
       toast.error("Only PDF files under 5MB are allowed.");
     }
-
     setFiles(validFiles);
   };
 
@@ -79,16 +116,18 @@ export default function ChatWithFiles() {
 
   const handleSubmitWithFiles = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!userId) {
+      toast.error("User not authenticated");
+      return;
+    }
     const encodedFiles = await Promise.all(
       files.map(async (file) => ({
         name: file.name,
         type: file.type,
         data: await encodeFileAsBase64(file),
-      })),
+      }))
     );
     submit({ files: encodedFiles });
-    const generatedTitle = await generateQuizTitle(encodedFiles[0].name);
-    setTitle(generatedTitle);
   };
 
   const clearPDF = () => {
@@ -100,7 +139,12 @@ export default function ChatWithFiles() {
 
   if (questions.length === 4) {
     return (
-      <Quiz title={title ?? "Quiz"} questions={questions} clearPDF={clearPDF} />
+      <Quiz
+        title={title ?? "Quiz"}
+        questions={questions}
+        clearPDF={clearPDF}
+        quizId={quizId}
+      />
     );
   }
 
@@ -117,7 +161,6 @@ export default function ChatWithFiles() {
       onDrop={(e) => {
         e.preventDefault();
         setIsDragging(false);
-        console.log(e.dataTransfer.files);
         handleFileChange({
           target: { files: e.dataTransfer.files },
         } as React.ChangeEvent<HTMLInputElement>);
@@ -133,7 +176,7 @@ export default function ChatWithFiles() {
           >
             <div>Drag and drop files here</div>
             <div className="text-sm dark:text-zinc-400 text-zinc-500">
-              {"(PDFs only)"}
+              (PDFs only)
             </div>
           </motion.div>
         )}
@@ -160,9 +203,7 @@ export default function ChatWithFiles() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmitWithFiles} className="space-y-4">
-            <div
-              className={`relative flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 transition-colors hover:border-muted-foreground/50`}
-            >
+            <div className="relative flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 transition-colors hover:border-muted-foreground/50">
               <input
                 type="file"
                 onChange={handleFileChange}
