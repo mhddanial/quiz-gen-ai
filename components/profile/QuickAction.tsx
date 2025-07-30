@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { FileText, BarChart3, Settings, LogOut } from "lucide-react";
+import { FileText, BarChart3, Settings, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Props {
@@ -19,10 +19,10 @@ export default function QuickActions({ onSignOut }: Props) {
         <Button
           variant="outline"
           className="w-full justify-start"
-          onClick={() => router.push("/generate-quiz")}
+          onClick={() => router.push("/profile")}
         >
-          <FileText className="h-4 w-4 mr-3" />
-          Create New Quiz
+          <User className="h-4 w-4 mr-3" />
+          Profile Information
         </Button>
 
         <Button

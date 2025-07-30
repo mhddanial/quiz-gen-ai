@@ -16,10 +16,10 @@ export async function middleware(req: NextRequest) {
         req.nextUrl.pathname.startsWith(route)
     );
 
-    if (isProtected && !session) {
-        const redirectUrl = req.nextUrl.clone();
-        redirectUrl.pathname = "/auth/login";
-        return NextResponse.redirect(redirectUrl);
+    if (isProtected && session) {
+      const redirectUrl = req.nextUrl.clone();
+      redirectUrl.pathname = "/";
+      return NextResponse.redirect(redirectUrl);
     }
 
     return res;
