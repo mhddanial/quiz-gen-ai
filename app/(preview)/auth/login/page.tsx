@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileText, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,11 +38,16 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message);
+      toast.error("Login failed", {
+        description: error.message,
+      });
+      setIsLoading(false);
     } else {
-      router.push("/profile");
+      setTimeout(() => {
+        router.push("/");
+        toast.success("Login successful 🎉");
+      }, 1500);
     }
-
-    setIsLoading(false);
   };
 
   const handleGoogleLogin = async () => {
@@ -51,13 +57,20 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/profile`,
+        redirectTo: `${window.location.origin}/`,
       },
     });
 
     if (error) {
       setError(error.message);
+      toast.error("Google login failed", {
+        description: error.message,
+      });
       setIsLoading(false);
+    } else {
+      setTimeout(() => {
+        toast("Redirecting to Google...");
+      }, 800);
     }
   };
 
@@ -89,15 +102,6 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Error Alert */}
-            {error && (
-              <Alert variant="destructive" className="border-red-200 bg-red-50">
-                <AlertDescription className="text-red-800">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-
             {/* Login Form */}
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">

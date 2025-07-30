@@ -10,7 +10,6 @@ import {
   UserProfile,
 } from "@/lib/user";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -19,11 +18,12 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Check } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import AvatarCard from "@/components/profile/AvatarCard";
 import ProfileForm from "@/components/profile/ProfileForm";
 import QuickActions from "@/components/profile/QuickAction";
+import { toast } from "sonner";
 
 // --- Interfaces ---
 interface EditForm {
@@ -38,8 +38,6 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [editForm, setEditForm] = useState<EditForm>({
     fullName: "",
     email: "",
@@ -67,7 +65,6 @@ export default function ProfilePage() {
   const checkUser = useCallback(async () => {
     try {
       setIsLoading(true);
-      setError("");
       const supaUser = await getCurrentUser();
       setUser(supaUser);
       const userProfile = extractUserProfile(supaUser);
@@ -77,7 +74,7 @@ export default function ProfilePage() {
         email: userProfile.email,
       });
     } catch (err) {
-      setError("Failed to load profile information");
+      toast.error("Failed to load profile information");
       router.push("/auth/login");
     } finally {
       setIsLoading(false);
@@ -88,32 +85,22 @@ export default function ProfilePage() {
     checkUser();
   }, [checkUser]);
 
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => setSuccess(""), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [success]);
-
   const handleSaveProfile = useCallback(async () => {
     if (!editForm.fullName.trim()) {
-      setError("Name cannot be empty");
+      toast.error("Name cannot be empty");
       return;
     }
 
     try {
       setIsSaving(true);
-      setError("");
-      setSuccess("");
-
       await updateUserFullName(editForm.fullName);
       setProfile((prev) =>
         prev ? { ...prev, full_name: editForm.fullName } : null
       );
-      setSuccess("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (err: any) {
-      setError(err.message || "Failed to update profile");
+      toast.error(err.message || "Failed to update profile");
     } finally {
       setIsSaving(false);
     }
@@ -122,15 +109,15 @@ export default function ProfilePage() {
   const handleSignOut = useCallback(async () => {
     try {
       await signOutUser();
+      toast.success("Signed out successfully");
       router.push("/");
     } catch {
-      setError("Error signing out");
+      toast.error("Error signing out");
     }
   }, [router]);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
-    setError("");
     if (profile) {
       setEditForm({
         fullName: profile.full_name || "",
@@ -204,20 +191,6 @@ export default function ProfilePage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {success && (
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <Check className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              {success}
-            </AlertDescription>
-          </Alert>
-        )}
-
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card className="shadow-lg border-0">

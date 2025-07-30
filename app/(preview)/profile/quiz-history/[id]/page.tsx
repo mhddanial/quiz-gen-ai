@@ -48,7 +48,6 @@ export default function QuizDetailPage() {
 
         setQuiz(quizData);
 
-        // Fetch quiz_answers
         const { data: answerData } = await supabase
             .from('quiz_answers')
             .select('answers, score')

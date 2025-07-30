@@ -15,6 +15,7 @@ import NextLink from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 // Navigation links configuration
 const NAV_LINKS = [
@@ -35,8 +36,8 @@ interface UserAvatarProps {
   user: SupabaseUser | null;
 }
 
-// Custom hook for auth state management
 function useAuth() {
+  const router = useRouter();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -96,10 +97,12 @@ function useAuth() {
         return;
       }
       setUser(null);
+      setIsLoading(true);
+      router.push("/");
     } catch (error) {
       console.error("Error in signOut:", error);
     }
-  }, []);
+  }, [router]);
 
   return { user, isLoading, signOut };
 }
