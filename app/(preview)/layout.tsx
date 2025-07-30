@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
 import { Geist } from "next/font/google";
-import PageTransition from "@/components/page-transition";
 import NavbarWrapper from "@/components/navbar-wrapper";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -26,10 +26,9 @@ export default function RootLayout({
         <ThemeProvider attribute="class" enableSystem forcedTheme="light">
           <Toaster position="top-center" richColors />
           <NavbarWrapper />
-          <PageTransition />
-
           <div className="transition-opacity duration-300 opacity-100 animate-fade-in">
             {children}
+            <SpeedInsights />
           </div>
         </ThemeProvider>
       </body>

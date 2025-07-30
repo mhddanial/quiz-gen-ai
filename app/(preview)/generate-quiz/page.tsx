@@ -72,7 +72,6 @@ export default function ChatWithFiles() {
           doc_title: generatedTitle,
           questions: object,
           user_id: userId,
-          average_score: null,
         })
         .select("id")
         .single();

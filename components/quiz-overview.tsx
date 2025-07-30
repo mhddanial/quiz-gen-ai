@@ -20,7 +20,7 @@ export default function QuizReview({ questions, userAnswers }: Props) {
             key={index}
             className="border rounded-md p-4 space-y-2 bg-white shadow-sm"
           >
-            <p className="font-medium text-gray-800">
+            <p className="font-bold text-gray-800">
               {index + 1}. {q.question}
             </p>
 
@@ -59,7 +59,7 @@ export default function QuizReview({ questions, userAnswers }: Props) {
             {/* Summary per soal */}
             {userAnswer !== correctAnswer && (
               <p className="text-sm text-red-600 mt-1">
-                Jawaban Anda: <strong>{userAnswer}</strong>
+                ❌ Jawaban Anda Salah!
               </p>
             )}
             {userAnswer === correctAnswer && (

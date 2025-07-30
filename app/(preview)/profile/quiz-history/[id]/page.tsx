@@ -77,15 +77,17 @@ export default function QuizDetailPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto py-10 px-4">
-        <h1 className="text-3xl font-bold mb-6 text-center">{quiz.doc_title}</h1>
+      <div className="max-w-4xl mx-auto py-10 px-4">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          {quiz.doc_title}
+        </h1>
         <QuizScore
-            correctAnswers={Math.round(score * quiz.questions.length)}
-            totalQuestions={quiz.questions.length}
+          correctAnswers={Math.round(score * quiz.questions.length)}
+          totalQuestions={quiz.questions.length}
         />
         <div className="mt-10">
-            <QuizReview questions={quiz.questions} userAnswers={userAnswers} />
+          <QuizReview questions={quiz.questions} userAnswers={userAnswers} />
         </div>
-        </div>
+      </div>
     );
 }
