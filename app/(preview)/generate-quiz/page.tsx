@@ -146,6 +146,14 @@ export default function ChatWithFiles() {
     );
   }
 
+  if (!userId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-[100dvh] w-full flex justify-center"

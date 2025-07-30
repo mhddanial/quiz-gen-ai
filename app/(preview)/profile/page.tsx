@@ -74,7 +74,6 @@ export default function ProfilePage() {
         email: userProfile.email,
       });
     } catch (err) {
-      toast.error("Failed to load profile information");
       router.push("/auth/login");
     } finally {
       setIsLoading(false);
@@ -100,7 +99,7 @@ export default function ProfilePage() {
       toast.success("Profile updated successfully!");
       setIsEditing(false);
     } catch (err: any) {
-      toast.error(err.message || "Failed to update profile");
+      toast.error(err.message);
     } finally {
       setIsSaving(false);
     }
@@ -168,14 +167,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center">
-            <p className="text-gray-600 mb-4">
-              Unable to load profile information
-            </p>
-            <Button onClick={() => router.push("/")}>Back to Home</Button>
-          </CardContent>
-        </Card>
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     );
   }

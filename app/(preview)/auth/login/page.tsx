@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileText, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -70,7 +69,7 @@ export default function LoginPage() {
     } else {
       setTimeout(() => {
         toast("Redirecting to Google...");
-      }, 800);
+      }, 1000);
     }
   };
 
