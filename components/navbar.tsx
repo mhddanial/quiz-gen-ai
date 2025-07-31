@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // Navigation links configuration
 const NAV_LINKS = [
@@ -97,8 +98,12 @@ function useAuth() {
         return;
       }
       setUser(null);
-      setIsLoading(true);
-      router.push("/");
+      router.refresh();
+
+      setTimeout(() => {
+        toast.success("Signed out successfully");
+        router.push("/");
+      }, 1000);
     } catch (error) {
       console.error("Error in signOut:", error);
     }
@@ -112,13 +117,13 @@ function MobileMenu({ isOpen, onClose, user, onSignOut }: MobileMenuProps) {
   // Close menu when clicking outside
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
@@ -223,7 +228,6 @@ function UserAvatar({ user }: UserAvatarProps) {
     setImageError(true);
   }, []);
 
-  // Reset image error when user changes
   useEffect(() => {
     setImageError(false);
   }, [user?.id]);

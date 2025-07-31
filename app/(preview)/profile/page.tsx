@@ -88,8 +88,12 @@ export default function ProfilePage() {
   const handleSignOut = useCallback(async () => {
     try {
       await signOutUser();
-      toast.success("Signed out successfully");
-      router.push("/");
+      setTimeout(() => {
+        toast.success("Signed out successfully", {
+          duration: 800,
+        });
+        router.push("/");
+      }, 1200);
     } catch {
       toast.error("Error signing out");
     }

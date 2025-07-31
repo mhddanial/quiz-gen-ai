@@ -44,8 +44,10 @@ export default function LoginPage() {
     } else {
       setTimeout(() => {
         router.push("/");
-        toast.success("Login successful 🎉");
-      }, 1500);
+        toast.success("Login successful", {
+          duration: 1200,
+        });
+      }, 2000);
     }
   };
 
