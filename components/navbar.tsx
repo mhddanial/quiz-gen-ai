@@ -101,9 +101,11 @@ function useAuth() {
       router.refresh();
 
       setTimeout(() => {
-        toast.success("Signed out successfully");
         router.push("/");
-      }, 1000);
+        toast.success("Sign Out Succesfully", {
+          duration: 1200,
+        });
+      }, 2000);
     } catch (error) {
       console.error("Error in signOut:", error);
     }

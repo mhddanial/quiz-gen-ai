@@ -41,7 +41,6 @@ export function formatDateString(dateString: string): string {
   });
 }
 
-// Generate user initials
 export function getUserInitials(
   fullName?: string,
   fallbackEmail?: string

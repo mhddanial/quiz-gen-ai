@@ -3,7 +3,7 @@ import { ChevronRight, Home } from "lucide-react";
 import Link from "next/link";
 
 interface PageShellProps {
-  title?: string; // optional, in case still used in some pages
+  title?: string;
   subtitle?: string;
   breadcrumbs?: { label: string; href?: string }[];
   children: ReactNode;

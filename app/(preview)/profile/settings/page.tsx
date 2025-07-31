@@ -8,24 +8,21 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signOutUser } from "@/lib/auth";
-import {
-  Eye,
-  EyeOff,
-  Loader2,
-  Lock,
-  X
-} from "lucide-react";
+import { changePasswordSecure, loadUserProfile, UserProfile } from "@/lib/user";
+import { supabase } from "@/lib/supabaseClient";
+import { Eye, EyeOff, Loader2, Lock, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
   const router = useRouter();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isPasswordSaving, setIsPasswordSaving] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -34,8 +31,12 @@ export default function SettingsPage() {
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
+
+  useEffect(() => {
+    loadUserProfile().then(setUserProfile);
+  }, []);
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -53,12 +54,16 @@ export default function SettingsPage() {
     if (!/[A-Z]/.test(password)) errors.push("At least one uppercase letter");
     if (!/[a-z]/.test(password)) errors.push("At least one lowercase letter");
     if (!/\d/.test(password)) errors.push("At least one number");
-    if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) errors.push("At least one special character");
+    if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password))
+      errors.push("At least one special character");
     return errors;
   };
 
-  const handlePasswordFormChange = (field: keyof typeof passwordForm, value: string) => {
-    setPasswordForm(prev => ({ ...prev, [field]: value }));
+  const handlePasswordFormChange = (
+    field: keyof typeof passwordForm,
+    value: string
+  ) => {
+    setPasswordForm((prev) => ({ ...prev, [field]: value }));
     if (field === "newPassword") {
       const errors = validatePassword(value);
       setPasswordErrors(errors);
@@ -66,7 +71,11 @@ export default function SettingsPage() {
   };
 
   const handleCancelPasswordChange = () => {
-    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
     setPasswordErrors([]);
     setShowCurrentPassword(false);
     setShowNewPassword(false);
@@ -74,6 +83,8 @@ export default function SettingsPage() {
   };
 
   const handleChangePassword = async () => {
+    const isEmailUser = userProfile?.provider === "email";
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       setPasswordErrors(["Passwords do not match"]);
       return;
@@ -87,19 +98,37 @@ export default function SettingsPage() {
 
     setIsPasswordSaving(true);
     try {
-      // TODO: replace this with your actual API call
-      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setPasswordErrors([]);
-      toast.success("Password changed successfully!");
-    } catch (e) {
-      setPasswordErrors(["Failed to change password. Please check your current password."]);
+      if (isEmailUser) {
+        await changePasswordSecure(
+          passwordForm.currentPassword,
+          passwordForm.newPassword
+        );
+      } else {
+        const { error } = await supabase.auth.updateUser({
+          password: passwordForm.newPassword,
+        });
+        if (error) throw error;
+      }
+
+      toast.success("Password changed successfully! Logging out...", {
+        duration: 1200,
+      });
+      setTimeout(() => {
+        router.push("/auth/login");  
+      },2000)
+      await signOutUser();
+      
+    } catch (e: any) {
+      setPasswordErrors([e.message || "Failed to change password"]);
     } finally {
       setIsPasswordSaving(false);
     }
   };
 
+  const isEmailUser = userProfile?.provider === "email";
+
   const isPasswordFormValid =
-    passwordForm.currentPassword.trim() &&
+    (!isEmailUser || passwordForm.currentPassword.trim()) &&
     passwordForm.newPassword.trim() &&
     passwordForm.confirmPassword.trim() &&
     passwordForm.newPassword === passwordForm.confirmPassword &&
@@ -115,7 +144,9 @@ export default function SettingsPage() {
       <Card className="shadow-lg border-0 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <div>
-            <CardTitle className="text-lg sm:text-xl">Change Password</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">
+              Change Password
+            </CardTitle>
             <CardDescription className="text-blue-100">
               Update your password to keep your account secure
             </CardDescription>
@@ -124,37 +155,96 @@ export default function SettingsPage() {
 
         <CardContent className="p-6 sm:p-8">
           <div className="space-y-4">
-            {[
-              { id: "currentPassword", label: "Current Password", state: showCurrentPassword, toggle: setShowCurrentPassword },
-              { id: "newPassword", label: "New Password", state: showNewPassword, toggle: setShowNewPassword },
-              { id: "confirmPassword", label: "Confirm New Password", state: showConfirmPassword, toggle: setShowConfirmPassword }
-            ].map(({ id, label, state, toggle }) => (
-              <div key={id} className="space-y-2">
-                <Label htmlFor={id} className="text-sm font-medium text-gray-700">{label}</Label>
+            {isEmailUser && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="currentPassword"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Current Password
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
-                    id={id}
-                    type={state ? "text" : "password"}
-                    value={passwordForm[id as keyof typeof passwordForm]}
-                    onChange={(e) => handlePasswordFormChange(id as keyof typeof passwordForm, e.target.value)}
-                    placeholder={label}
+                    id="currentPassword"
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={passwordForm.currentPassword}
+                    onChange={(e) =>
+                      handlePasswordFormChange(
+                        "currentPassword",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Current Password"
                     className="pl-10 pr-10"
                   />
                   <button
                     type="button"
-                    onClick={() => toggle(!state)}
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {state ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showCurrentPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
-            ))}
+            )}
+
+            {["newPassword", "confirmPassword"].map((field) => {
+              const isNew = field === "newPassword";
+              const state = isNew ? showNewPassword : showConfirmPassword;
+              const toggle = isNew
+                ? setShowNewPassword
+                : setShowConfirmPassword;
+              const label = isNew ? "New Password" : "Confirm New Password";
+
+              return (
+                <div key={field} className="space-y-2">
+                  <Label
+                    htmlFor={field}
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    {label}
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id={field}
+                      type={state ? "text" : "password"}
+                      value={passwordForm[field as keyof typeof passwordForm]}
+                      onChange={(e) =>
+                        handlePasswordFormChange(
+                          field as keyof typeof passwordForm,
+                          e.target.value
+                        )
+                      }
+                      placeholder={label}
+                      className="pl-10 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggle(!state)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {state ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
 
             {passwordErrors.length > 0 && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm font-medium text-red-800 mb-1">Password requirements:</p>
+                <p className="text-sm font-medium text-red-800 mb-1">
+                  Password requirements:
+                </p>
                 <ul className="text-sm text-red-700 space-y-1">
                   {passwordErrors.map((error, index) => (
                     <li key={index} className="flex items-center">

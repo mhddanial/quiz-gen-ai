@@ -103,7 +103,7 @@ export default function QuizHistoryPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin h-6 w-6 text-blue-600" />
+        <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
       </div>
     );
   }
