@@ -138,7 +138,10 @@ export default function SettingsPage() {
     <PageShell
       title="Account Settings"
       subtitle="Manage your security settings here"
-      breadcrumbs={[{ label: "Profile" }]}
+      breadcrumbs={[
+        { label: "Profile", href: "/profile" },
+        { label: "Settings" },
+      ]}
       rightSidebar={<QuickActions onSignOut={handleSignOut} />}
     >
       <Card className="shadow-lg border-0 overflow-hidden">

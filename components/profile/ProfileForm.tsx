@@ -25,12 +25,13 @@ export default function ProfileForm({
   handleCancelEdit,
   formatDate
 }: Props) {
+  
   return (
     <div className="space-y-6">
       {isEditing ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 w-full">
               <Label htmlFor="fullName">Name</Label>
               <Input
                 id="fullName"
@@ -51,9 +52,7 @@ export default function ProfileForm({
               disabled
               className="bg-gray-50"
             />
-            <p className="text-xs text-gray-500">
-              Email cannot be changed
-            </p>
+            <p className="text-xs text-gray-500">Email cannot be changed</p>
           </div>
 
           <div className="flex space-x-3 pt-4">
@@ -88,23 +87,37 @@ export default function ProfileForm({
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <Label className="text-sm font-medium text-gray-500">Full Name</Label>
-              <p className="text-gray-900 font-medium mt-1">{profile.full_name || "Not provided"}</p>
+              <Label className="text-sm font-medium text-gray-500">
+                Full Name
+              </Label>
+              <p className="text-gray-900 font-medium mt-1">
+                {profile.full_name || "Not provided"}
+              </p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-gray-500">Email Address</Label>
+              <Label className="text-sm font-medium text-gray-500">
+                Email Address
+              </Label>
               <p className="text-gray-900 font-medium mt-1">{profile.email}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <Label className="text-sm font-medium text-gray-500">Member Since</Label>
-              <p className="text-gray-900 font-medium mt-1">{formatDate(profile.created_at)}</p>
+              <Label className="text-sm font-medium text-gray-500">
+                Member Since
+              </Label>
+              <p className="text-gray-900 font-medium mt-1">
+                {formatDate(profile.created_at)}
+              </p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-gray-500">Last Sign In</Label>
+              <Label className="text-sm font-medium text-gray-500">
+                Last Sign In
+              </Label>
               <p className="text-gray-900 font-medium mt-1">
-                {profile.last_sign_in_at ? formatDate(profile.last_sign_in_at) : "Never"}
+                {profile.last_sign_in_at
+                  ? formatDate(profile.last_sign_in_at)
+                  : "Never"}
               </p>
             </div>
           </div>

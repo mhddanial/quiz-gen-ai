@@ -23,9 +23,9 @@ const NAV_LINKS = [
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it Works" },
   { href: "/#why-choose-us", label: "Why Choose Us" },
+  { href: "/generate-quiz", label: "Generate Quiz" },
 ] as const;
 
-// Types
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
