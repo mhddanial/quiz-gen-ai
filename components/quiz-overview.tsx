@@ -56,7 +56,6 @@ export default function QuizReview({ questions, userAnswers }: Props) {
               })}
             </div>
 
-            {/* Summary per soal */}
             {userAnswer !== correctAnswer && (
               <p className="text-sm text-red-600 mt-1">
                 ❌ Jawaban Anda Salah!
