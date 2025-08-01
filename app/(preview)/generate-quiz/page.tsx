@@ -6,7 +6,7 @@ import { experimental_useObject } from "ai/react";
 import { questionsSchema } from "@/lib/schemas";
 import { z } from "zod";
 import { toast } from "sonner";
-import { FileUp, Plus, Loader2 } from "lucide-react";
+import { FileUp, Plus, Loader2, Sparkles, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -149,14 +149,19 @@ export default function ChatWithFiles() {
   if (!userId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          <Loader2 className="h-8 w-8 text-blue-600" />
+        </motion.div>
       </div>
     );
   }
 
   return (
     <div
-      className="min-h-[100dvh] w-full flex justify-center"
+      className="min-h-[100dvh] w-full flex justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 relative"
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -175,100 +180,211 @@ export default function ChatWithFiles() {
       <AnimatePresence>
         {isDragging && (
           <motion.div
-            className="fixed pointer-events-none dark:bg-zinc-900/90 h-dvh w-dvw z-10 justify-center items-center flex flex-col gap-1 bg-zinc-100/90"
+            className="fixed inset-0 bg-blue-500/10 backdrop-blur-sm z-50 flex flex-col items-center justify-center pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div>Drag and drop files here</div>
-            <div className="text-sm dark:text-zinc-400 text-zinc-500">
-              (PDFs only)
-            </div>
+            <motion.div
+              className="bg-white rounded-2xl p-8 shadow-2xl border-2 border-dashed border-blue-400"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring" }}
+            >
+              <Upload className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+              <div className="text-xl font-semibold text-gray-800 text-center">
+                Drop your PDF here
+              </div>
+              <div className="text-sm text-gray-500 text-center mt-2">
+                Transform it into an interactive quiz
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-      <Card className="w-full max-w-md h-full border-0 sm:border sm:h-fit mt-12">
-        <CardHeader className="text-center space-y-6">
-          <div className="mx-auto flex items-center justify-center space-x-2 text-muted-foreground">
-            <div className="rounded-full bg-primary/10 p-2">
-              <FileUp className="h-6 w-6" />
-            </div>
-            <Plus className="h-4 w-4" />
-            <div className="rounded-full bg-primary/10 p-2">
-              <Loader2 className="h-6 w-6" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <CardTitle className="text-2xl font-bold">
-              PDF Quiz Generator
-            </CardTitle>
-            <CardDescription className="text-base">
-              Ini adalah generator quiz dari file PDF.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmitWithFiles} className="space-y-4">
-            <div className="relative flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 transition-colors hover:border-muted-foreground/50">
-              <input
-                type="file"
-                onChange={handleFileChange}
-                accept="application/pdf"
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-              <FileUp className="h-8 w-8 mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground text-center">
-                {files.length > 0 ? (
-                  <span className="font-medium text-foreground">
-                    {files[0].name}
-                  </span>
-                ) : (
-                  <span>Drop your PDF here or click to browse.</span>
-                )}
-              </p>
-            </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={files.length === 0}
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md relative"
+      >
+        <Card className="w-full max-w-md h-full border-0 sm:border sm:h-fit mt-12 shadow-2xl bg-white/95 backdrop-blur-sm overflow-hidden">
+          <CardHeader className="text-center space-y-6 bg-gradient-to-r from-blue-50/50 to-purple-50/50 pb-8">
+            <motion.div
+              className="mx-auto flex items-center justify-center space-x-3 text-muted-foreground"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
             >
-              {isLoading ? (
-                <span className="flex items-center space-x-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Generating Quiz...</span>
-                </span>
-              ) : (
-                "Generate Quiz"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-        {isLoading && (
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="w-full space-y-1">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Progress</span>
-                <span>{Math.round(progress)}%</span>
+              <div className="rounded-full bg-gradient-to-r from-blue-500/20 to-blue-600/20 p-3 shadow-lg border border-blue-200">
+                <FileUp className="h-6 w-6 text-blue-600" />
               </div>
-              <Progress value={progress} className="h-2" />
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <Plus className="h-5 w-5 text-gray-400" />
+              </motion.div>
+              <div className="rounded-full bg-gradient-to-r from-purple-500/20 to-purple-600/20 p-3 shadow-lg border border-purple-200">
+                <Sparkles className="h-6 w-6 text-purple-600" />
+              </div>
+            </motion.div>
+
+            <div className="space-y-3">
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                PDF Quiz Generator
+              </CardTitle>
+              <CardDescription className="text-lg text-gray-600 leading-relaxed">
+                Transform your learning materials into{" "}
+                <span className="font-semibold text-blue-600">
+                  interactive quizzes
+                </span>{" "}
+                powered by AI
+              </CardDescription>
             </div>
-            <div className="w-full space-y-2">
-              <div className="grid grid-cols-6 sm:grid-cols-4 items-center space-x-2 text-sm">
-                <div
-                  className={`h-2 w-2 rounded-full ${
-                    isLoading ? "bg-yellow-500/50 animate-pulse" : "bg-muted"
-                  }`}
+          </CardHeader>
+
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmitWithFiles} className="space-y-6">
+              <motion.div
+                className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-8 transition-all duration-300 ${
+                  isDragging
+                    ? "border-blue-400 bg-blue-50"
+                    : files.length > 0
+                    ? "border-green-400 bg-green-50/50"
+                    : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/30"
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="application/pdf"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  disabled={isLoading}
                 />
-                <span className="text-muted-foreground text-center col-span-4 sm:col-span-2">
-                  {partialQuestions
-                    ? `Generating question ${partialQuestions.length + 1} of 4`
-                    : "Analyzing PDF content"}
-                </span>
+                <motion.div
+                  className={`p-4 rounded-full mb-4 ${
+                    files.length > 0 ? "bg-green-100" : "bg-gray-100"
+                  }`}
+                  animate={isLoading ? { rotate: 360 } : {}}
+                  transition={{ duration: 1, repeat: isLoading ? Infinity : 0 }}
+                >
+                  <FileUp
+                    className={`h-8 w-8 ${
+                      files.length > 0 ? "text-green-600" : "text-gray-500"
+                    }`}
+                  />
+                </motion.div>
+
+                <div className="text-center space-y-2">
+                  {files.length > 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="space-y-1"
+                    >
+                      <p className="font-semibold text-gray-800 text-lg">
+                        {files[0].name}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {(files[0].size / (1024 * 1024)).toFixed(1)} MB • Ready
+                        to process
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-gray-700 font-medium">
+                        Drop your PDF here or click to browse
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Maximum file size: 5MB
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+
+              <Button
+                type="submit"
+                className={`w-full py-4 rounded-xl text-lg font-semibold shadow-lg transition-all duration-300 ${
+                  files.length === 0 || isLoading
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-xl hover:from-blue-600 hover:to-purple-700"
+                }`}
+                disabled={files.length === 0}
+              >
+                {isLoading ? (
+                  <motion.span
+                    className="flex items-center justify-center space-x-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Generating Quiz...</span>
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    className="flex items-center justify-center space-x-2"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    <span>Generate Interactive Quiz</span>
+                  </motion.span>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+
+          {isLoading && (
+            <CardFooter className="flex flex-col space-y-6 bg-gray-50/50 pt-6">
+              <div className="w-full space-y-3">
+                <div className="flex justify-between text-sm font-medium">
+                  <span className="text-gray-700">Generation Progress</span>
+                  <span className="text-blue-600 font-bold">
+                    {Math.round(progress)}%
+                  </span>
+                </div>
+                <Progress value={progress} className="h-3 bg-gray-200" />
               </div>
-            </div>
-          </CardFooter>
-        )}
-      </Card>
+
+              <motion.div
+                className="w-full bg-white rounded-xl border p-4 shadow-sm"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="flex items-center space-x-4">
+                  <motion.div
+                    className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                  <div className="flex-1">
+                    <span className="text-muted-foreground text-center text-sm font-medium">
+                      {partialQuestions
+                        ? `Crafting question ${
+                            partialQuestions.length + 1
+                          } of 4`
+                        : "Analyzing PDF content with AI"}
+                    </span>
+                    <p className="text-xs text-gray-500 mt-1">
+                      This may take a few moments
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <div className="text-center">
+                <p className="text-xs text-gray-500">
+                  ✨ Creating personalized questions based on your document
+                </p>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+      </motion.div>
     </div>
   );
 }

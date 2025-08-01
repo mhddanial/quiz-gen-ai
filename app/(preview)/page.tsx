@@ -45,24 +45,6 @@ export default function HomePage() {
       description:
         "Get your quiz generated in seconds, not hours. Perfect for busy educators and students.",
     },
-    {
-      icon: <Target className="h-8 w-8" />,
-      title: "Customizable Difficulty",
-      description:
-        "Choose from beginner, intermediate, or advanced difficulty levels to match your needs.",
-    },
-    {
-      icon: <BarChart3 className="h-8 w-8" />,
-      title: "Multiple Question Types",
-      description:
-        "Generate multiple choice, true/false, short answer, and essay questions from your content.",
-    },
-    {
-      icon: <Shield className="h-8 w-8" />,
-      title: "Secure & Private",
-      description:
-        "Your documents are processed securely and never stored permanently on our servers.",
-    },
   ];
 
   const advantages = [
@@ -289,26 +271,26 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Transform Your Learning Experience?
+      <section className="py-20 px-6 sm:px-8 lg:px-12 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mb-6 drop-shadow-md">
+            Ready to Turn Your PDF into a Smart Quiz?
           </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Start creating engaging quizzes from your PDF content today. No
-            credit card required.
+          <p className="text-lg sm:text-xl mb-10 opacity-95 max-w-2xl mx-auto">
+            Let AI generate engaging multiple-choice questions instantly from
+            your learning materials.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <NextLink
-              href="/auth/login"
-              className="flex flex-row gap-2 items-center border px-2 py-1.5 rounded-md hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800"
+              href="/generate-quiz"
+              className="inline-flex items-center justify-center px-6 py-3 text-lg font-medium rounded-lg shadow-lg bg-white text-indigo-600 hover:bg-indigo-100 transition-colors duration-200"
             >
-              <GitIcon />
-              Try for free
+              🚀 Generate Your Quiz Now
             </NextLink>
           </div>
         </div>
       </section>
+
       <footer className="text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="border-t border-gray-400 py-5 text-center text-gray-400">
           <p>&copy; 2025 QuizGen AI. All rights reserved.</p>

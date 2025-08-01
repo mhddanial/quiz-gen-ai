@@ -18,11 +18,8 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// Navigation links configuration
 const NAV_LINKS = [
-  { href: "/#features", label: "Features" },
-  { href: "/#how-it-works", label: "How it Works" },
-  { href: "/#why-choose-us", label: "Why Choose Us" },
+  { href: "/", label: "Home" },
   { href: "/generate-quiz", label: "Generate Quiz" },
 ] as const;
 
