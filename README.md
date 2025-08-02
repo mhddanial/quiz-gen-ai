@@ -65,16 +65,13 @@ QuizGen AI utilizes Large Language Models (LLM) to:
 4. User answers questions → score is displayed
 5. Quiz history is saved and can be reviewed later
 
-> 📸 Screenshots available in `/public/screenshots` folder
-
----
 
 ## 🚀 Installation & Local Setup
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/your-username/quizgen-ai.git
-cd quizgen-ai
+git clone https://github.com/mhddanial/quiz-gen-ai.git
+cd quiz-gen-ai
 ```
 
 ### 2. Install Dependencies
@@ -94,13 +91,7 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # AI Services
-GEMINI_API_KEY=your_gemini_api_key
-OPENAI_API_KEY=your_openai_api_key
-IBM_GRANITE_API_KEY=your_ibm_api_key
-
-# Authentication
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
 ```
 
 ### 4. Database Setup
@@ -139,62 +130,8 @@ quizgen-ai/
 
 ---
 
-## 🚀 Deployment
-
-### Vercel (Recommended)
-1. Push code to GitHub
-2. Connect repository to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy automatically
-
-### Environment Variables for Production
-Make sure to add all environment variables from `.env.example` to your deployment platform.
-
----
-
-## 📸 Screenshots
-
-| Feature | Description |
-|---------|-------------|
-| Login Page | User authentication interface |
-| Dashboard | Main application dashboard |
-| PDF Upload | File upload interface |
-| Quiz Generation | AI processing and question creation |
-| Quiz Interface | Question answering interface |
-| Results | Score display and answer review |
-
----
-
-## 🔮 Future Enhancements
-
-- Multiple file format support (Word, PowerPoint)
-- Different question types (True/False, Short Answer)
-- Quiz sharing and collaboration features
-- Advanced analytics and reporting
-- Mobile responsive improvements
-
----
-
-## 👨‍💻 Development Team
-
-This project was developed as part of a coding bootcamp to demonstrate:
-- Full-stack web development skills
-- AI integration capabilities
-- Modern web technologies implementation
-- User experience design
-
----
-
 ## 📄 License
 
-This project is developed for educational purposes as part of a coding bootcamp program.
+This project is developed for educational purposes.
 
 ---
-
-<div align="center">
-
-**Built with ❤️ for Coding Bootcamp Final Project**
-
-[🐛 Report Issues](https://github.com/your-username/quizgen-ai/issues) • [💡 Suggest Features](https://github.com/your-username/quizgen-ai/discussions)
-
-</div>
