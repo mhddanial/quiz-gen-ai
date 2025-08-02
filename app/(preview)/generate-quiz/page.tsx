@@ -331,7 +331,7 @@ export default function ChatWithFiles() {
                     whileHover={{ scale: 1.05 }}
                   >
                     <Sparkles className="h-5 w-5" />
-                    <span>Generate Interactive Quiz</span>
+                    <span>Generate Quiz</span>
                   </motion.span>
                 )}
               </Button>

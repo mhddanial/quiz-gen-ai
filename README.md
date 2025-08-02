@@ -1,41 +1,200 @@
-# AI SDK PDF Support Example
+# 🎓 QuizGen AI
+> **Automated Quiz Generation from PDF Documents Using Artificial Intelligence**
 
-This example demonstrates how to use the [AI SDK](https://sdk.vercel.ai/docs) with [Next.js](https://nextjs.org/) with the `useObject` hook to submit PDF messages to the AI provider of your choice (Google or Anthropic).
+QuizGen AI is a web application that enables users to upload PDF documents and automatically generate high-quality multiple-choice questions using AI technology. This project is designed to support educators, trainers, and internal training teams in creating assessments quickly, systematically, and accurately.
 
-## Deploy your own
+---
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel-labs%2Fai-sdk-preview-pdf-support&env=GOOGLE_API_KEY&envDescription=API%20keys%20needed%20for%20application&envLink=google.com)
+## 🧭 Project Overview
 
-## How to use
+### 🎯 Objectives
+Accelerate the quiz creation process from PDF content by leveraging generative AI and modern web technologies.
 
-Run [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
+### 🔍 Background
+- Manual quiz creation is extremely time-consuming
+- Difficulty extracting important information from lengthy documents  
+- Lack of automated and accurate question generation systems
 
+### ✅ Solution
+QuizGen AI utilizes Large Language Models (LLM) to:
+- Extract information from PDF documents
+- Generate multiple-choice questions automatically
+- Store quiz results and answers for future review
+
+---
+
+## 🛠️ Tech Stack & Tools
+
+### Frontend
+- **Next.js 14** – Modern React Framework (with App Router, API Routes)
+- **Tailwind CSS + shadcn/ui** – Elegant & responsive UI components
+
+### Backend & Auth
+- **Supabase** – Authentication, file storage (Storage), and database (PostgreSQL)
+
+### AI Services
+| Tool | Primary Function |
+|------|------------------|
+| **Gemini AI** (Google) | Convert PDF content into quiz questions automatically |
+| **ChatGPT** | Brainstorming ideas, code review, documentation |
+| **IBM Granite** | Backend logic efficiency optimization |
+
+---
+
+## ✨ Key Features
+
+- 🔐 **Register & Login**  
+  Support authentication via Email/Password and Google OAuth
+  
+- 👤 **Profile Management**  
+  Edit profile & change password (depending on login method)
+  
+- 📄 **Generate Quiz from PDF**  
+  Upload file → AI reads & generates questions automatically
+  
+- 📚 **Quiz History & Review**  
+  Save all created quizzes and their answers for future reference
+
+---
+
+## 🧪 Application Flow Demo
+
+1. User login/register
+2. Upload PDF file
+3. System reads PDF content → AI generates questions
+4. User answers questions → score is displayed
+5. Quiz history is saved and can be reviewed later
+
+> 📸 Screenshots available in `/public/screenshots` folder
+
+---
+
+## 🚀 Installation & Local Setup
+
+### 1. Clone Repository
 ```bash
-npx create-next-app --example https://github.com/vercel-labs/ai-sdk-preview-pdf-support ai-sdk-preview-pdf-support-example
+git clone https://github.com/your-username/quizgen-ai.git
+cd quizgen-ai
 ```
 
+### 2. Install Dependencies
 ```bash
-yarn create next-app --example https://github.com/vercel-labs/ai-sdk-preview-pdf-support ai-sdk-preview-pdf-support-example
+npm install
 ```
 
+### 3. Environment Setup
 ```bash
-pnpm create next-app --example https://github.com/vercel-labs/ai-sdk-preview-pdf-support ai-sdk-preview-pdf-support-example
+cp .env.example .env.local
 ```
 
-To run the example locally you need to:
+Configure your environment variables:
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-1. Sign up for accounts with the AI providers you want to use (e.g., Google).
-2. Obtain API keys for Google provider.
-3. Set the required environment variables as shown in the `.env.example` file, but in a new file called `.env`.
-4. `npm install` to install the required dependencies.
-5. `npm run dev` to launch the development server.
+# AI Services
+GEMINI_API_KEY=your_gemini_api_key
+OPENAI_API_KEY=your_openai_api_key
+IBM_GRANITE_API_KEY=your_ibm_api_key
 
+# Authentication
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+```
 
-## Learn More
+### 4. Database Setup
+Set up your Supabase project:
+- Create authentication tables
+- Configure storage buckets for PDF files
+- Set up user profiles table
 
-To learn more about Vercel AI SDK or Next.js take a look at the following resources:
+### 5. Run Development Server
+```bash
+npm run dev
+```
 
-- [AI SDK docs](https://sdk.vercel.ai/docs)
-- [Vercel AI Playground](https://play.vercel.ai)
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
+---
+
+## 📱 Usage Guide
+
+### Getting Started
+1. **Register/Login** - Create account or sign in with Google
+2. **Upload PDF** - Drag and drop or select PDF file (max 10MB)
+3. **Generate Quiz** - AI automatically creates multiple-choice questions
+4. **Take Quiz** - Answer questions and get instant feedback
+5. **Review Results** - Check scores and review answers
+
+### File Structure
+```
+quizgen-ai/
+├── app/                    # Next.js App Router
+├── components/             # Reusable UI components
+├── lib/                    # Utility functions and AI configs
+├── public/screenshots/     # Application screenshots
+└── supabase/              # Database schemas and configs
+```
+
+---
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+1. Push code to GitHub
+2. Connect repository to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy automatically
+
+### Environment Variables for Production
+Make sure to add all environment variables from `.env.example` to your deployment platform.
+
+---
+
+## 📸 Screenshots
+
+| Feature | Description |
+|---------|-------------|
+| Login Page | User authentication interface |
+| Dashboard | Main application dashboard |
+| PDF Upload | File upload interface |
+| Quiz Generation | AI processing and question creation |
+| Quiz Interface | Question answering interface |
+| Results | Score display and answer review |
+
+---
+
+## 🔮 Future Enhancements
+
+- Multiple file format support (Word, PowerPoint)
+- Different question types (True/False, Short Answer)
+- Quiz sharing and collaboration features
+- Advanced analytics and reporting
+- Mobile responsive improvements
+
+---
+
+## 👨‍💻 Development Team
+
+This project was developed as part of a coding bootcamp to demonstrate:
+- Full-stack web development skills
+- AI integration capabilities
+- Modern web technologies implementation
+- User experience design
+
+---
+
+## 📄 License
+
+This project is developed for educational purposes as part of a coding bootcamp program.
+
+---
+
+<div align="center">
+
+**Built with ❤️ for Coding Bootcamp Final Project**
+
+[🐛 Report Issues](https://github.com/your-username/quizgen-ai/issues) • [💡 Suggest Features](https://github.com/your-username/quizgen-ai/discussions)
+
+</div>
